@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_members.php 34668 2014-06-23 08:11:09Z hypowang $
+ *      $Id: admincp_members.php 35200 2015-02-04 03:50:59Z hypowang $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -205,6 +205,7 @@ EOF;
 
 	if(empty($_GET['uid']) && empty($_GET['username']) && empty($_GET['ip'])) {
 
+		/*search={"nav_repeat":"action=members&operation=repeat"}*/
 		shownav('user', 'nav_members');
 		showsubmenu('nav_members', array(
 			array('search', 'members&operation=search', 0),
@@ -220,6 +221,7 @@ EOF;
 		showsubmit('submit', 'submit');
 		showtablefooter();
 		showformfooter();
+		/*search*/
 
 	} else {
 
@@ -919,6 +921,7 @@ EOF;
 			($groupselect['special'] ? '<optgroup label="'.$lang['usergroups_special'].'">'.$groupselect['special'].'</optgroup>' : '').
 			($groupselect['specialadmin'] ? '<optgroup label="'.$lang['usergroups_specialadmin'].'">'.$groupselect['specialadmin'].'</optgroup>' : '').
 			'<optgroup label="'.$lang['usergroups_system'].'">'.$groupselect['system'].'</optgroup>';
+		/*search={"nav_members_add":"action=members&operation=add"}*/
 		shownav('user', 'nav_members_add');
 		showsubmenu('members_add');
 		showformheader('members&operation=add');
@@ -931,6 +934,7 @@ EOF;
 		showsubmit('addsubmit');
 		showtablefooter();
 		showformfooter();
+		/*search*/
 
 	} else {
 
@@ -1061,6 +1065,7 @@ EOF;
 			$groups['member'] = '<option value="'.$group['groupid'].'" gtype="member">'.$group['grouptitle'].'</option>';
 		}
 
+		/*search={"members_group":"action=members&operation=group"}*/
 		shownav('user', 'members_group');
 		showsubmenu('members_group_member', array(), '', array('username' => $member['username']));
 		echo '<script src="static/js/calendar.js" type="text/javascript"></script>';
@@ -1087,6 +1092,7 @@ EOF;
 		showtablefooter();
 
 		showformfooter();
+		/*search*/
 
 	} else {
 
@@ -1177,9 +1183,7 @@ EOF;
 		}
 
 		if($_GET['groupidnew'] != $member['groupid'] && (in_array($_GET['groupidnew'], array(4, 5)) || in_array($member['groupid'], array(4, 5)))) {
-			$my_opt = in_array($_GET['groupidnew'], array(4, 5)) ? 'banuser' : 'unbanuser';
-			$log_handler = Cloud::loadClass('Cloud_Service_SearchHelper');
-			$log_handler->myThreadLog($my_opt, array('uid' => $member['uid']));
+			$my_opt = in_array($_GET['groupidnew'], array(4, 5)) ? 'banuser' : 'unbanuser';			
 			banlog($member['username'], $member['groupid'], $_GET['groupidnew'], $groupexpirynew, $_GET['reason']);
 		}
 
@@ -1231,6 +1235,7 @@ EOF;
 EOT;
 		shownav('user', 'members_credit');
 		showsubmenu('members_credit');
+		/*search={"members_credit":"action=members&operation=credit"}*/
 		showtips('members_credit_tips');
 		showformheader("members&operation=credit&uid={$_GET['uid']}");
 		showtableheader('<em class="right"><a href="'.ADMINSCRIPT.'?action=logs&operation=credit&srch_uid='.$_GET['uid'].'&frame=yes" target="_blank">'.cplang('members_credit_logs').'</a></em>'.cplang('members_credit').' - '.$member['username'].'('.$member['grouptitle'].')', 'nobottom');
@@ -1243,6 +1248,7 @@ EOT;
 		showsubmit('creditsubmit');
 		showtablefooter();
 		showformfooter();
+		/*search*/
 
 	} else {
 
@@ -1527,9 +1533,6 @@ EOF;
 			}
 			if(!$member['adminid']) {
 				$member_status = C::t('common_member_status')->fetch($member['uid']);
-				if($member_status) {
-					captcha::report($member_status['lastip']);
-				}
 			}
 		} elseif($member['groupid'] == 4 || $member['groupid'] == 5) {
 			if(!empty($member['groupterms']['main']['groupid'])) {
@@ -1552,11 +1555,6 @@ EOF;
 				uc_user_deleteavatar($member['uid']);
 			}
 		}
-		if(!empty($my_data) && !empty($mylogtype)) {
-			$log_handler = Cloud::loadClass('Cloud_Service_SearchHelper');
-			$log_handler->myThreadLog($mylogtype, $my_data);
-		}
-
 
 		$setarr['adminid'] = $adminidnew;
 		$setarr['groupid'] = $groupidnew;
@@ -1764,6 +1762,7 @@ EOF;
 
 		shownav('user', 'members_access_edit');
 		showsubmenu('members_access_edit');
+		/*search={"members_access_edit":"action=members&operation=access"}*/
 		showtips('members_access_tips');
 		showtableheader(cplang('members_access_now').' - '.$member['username'], 'nobottom fixpadding');
 		showsubtitle(array('forum', 'members_access_view', 'members_access_post', 'members_access_reply', 'members_access_getattach', 'members_access_getimage', 'members_access_postattach', 'members_access_postimage', 'members_access_adminuser', 'members_access_dateline'));
@@ -1817,6 +1816,7 @@ EOF;
 		showsubmit('accesssubmit', 'submit');
 		showtablefooter();
 		showformfooter();
+		/*search*/
 
 	} else {
 
@@ -1936,6 +1936,7 @@ EOF;
 		$member['signature'] = html2bbcode($member['sightml']);
 
 		shownav('user', 'members_edit');
+		/*search={"members_edit":"action=members&operation=edit"}*/
 		showsubmenu("$lang[members_edit] - $member[username]", array(
 			array('connect_member_info', 'members&operation=edit&uid='.$uid,  1),
 			!empty($_G['setting']['connect']['allow']) ? array('connect_member_bindlog', 'members&operation=edit&do=bindlog&uid='.$uid,  0) : array(),
@@ -1992,6 +1993,7 @@ EOF;
 		showsubmit('editsubmit');
 		showtablefooter();
 		showformfooter();
+		/*search*/
 
 	} else {
 
@@ -2043,8 +2045,8 @@ EOF;
 					$fieldarr[$key] = '';
 				}
 			}
-
 		}
+
 		if($_FILES) {
 			$upload = new discuz_upload();
 
@@ -2208,8 +2210,7 @@ EOF;
 					'dateline' => $_G['timestamp'],
 					'expiration' => $expiration,
 				);
-				C::t('common_banned')->insert($data);
-				captcha::report($_GET['ip1new'].'.'.$_GET['ip2new'].'.'.$_GET['ip3new'].'.'.$_GET['ip4new']);
+				C::t('common_banned')->insert($data);				
 			}
 
 			if(is_array($_GET['expirationnew'])) {
@@ -2766,6 +2767,7 @@ function showsearchform($operation = '') {
 		$usertagselect .= "<option value=\"$row[tagid]\" ".(in_array($row['tagid'], $tagid) ? 'selected' : '').">$row[tagname]</option>\n";
 	}
 
+	/*search={"nav_members":"action=members&operation=search"}*/
 	showtagheader('div', 'searchmembers', !$_GET['submit']);
 	echo '<script src="static/js/calendar.js" type="text/javascript"></script>';
 	echo '<style type="text/css">#residedistrictbox select, #birthdistrictbox select{width: auto;}</style>';
@@ -2920,6 +2922,7 @@ function showsearchform($operation = '') {
 	showtablefooter();
 	showformfooter();
 	showtagfooter('div');
+	/*search*/
 }
 
 function searchcondition($condition) {
@@ -3014,7 +3017,7 @@ function notifymembers($operation, $variable) {
 		$current = 0;
 		$subject = $_GET['subject'];
 		$message = $_GET['message'];
-		$subject = trim($subject);
+		$subject = dhtmlspecialchars(trim($subject));
 		$message = trim(str_replace("\t", ' ', $message));
 		$addmsg = '';
 		if(($_GET['notifymembers'] && $_GET['notifymember']) && !($subject && $message)) {
@@ -3189,7 +3192,7 @@ function notifymembers($operation, $variable) {
 	if(!function_exists('sendmail')) {
 		include libfile('function/mail');
 	}
-	if($_GET['notifymember'] && in_array($_GET['notifymembers'], array('pm', 'notice', 'email', 'mobile'))) {
+	if($_GET['notifymember'] && in_array($_GET['notifymembers'], array('pm', 'notice', 'email'))) {
 		$uids = searchmembers($search_condition, $pertask, $current);
 
 		require_once libfile('function/discuzcode');
@@ -3211,64 +3214,50 @@ function notifymembers($operation, $variable) {
 			$urladd .= '&gpmid='.$gpmid;
 		}
 		$members = C::t('common_member')->fetch_all($uids);
-		if($_GET['notifymembers'] == 'mobile') {
-			$toUids = array_keys($members);
-			if($_G['setting']['cloud_status'] && !empty($toUids)) {
-				try {
-					$noticeService = Cloud::loadClass('Service_Client_Notification');
-					$fromType = $_GET['system'] ? 1 : 2;
-					$noticeService->addSiteMasterUserNotify($toUids, $subject, $message, $_G['uid'], $_G['username'], $fromType, TIMESTAMP);
-				} catch (Cloud_Service_Client_RestfulException $e) {
-					cpmsg('['.$e->getCode().']'.$e->getMessage(), '', 'error');
+		foreach($members as $member) {
+			if($_GET['notifymembers'] == 'pm') {
+				C::t('common_member_grouppm')->insert(array(
+					'uid' => $member['uid'],
+					'gpmid' => $gpmid,
+					'status' => 0
+				), false, true);
+				$newpm = setstatus(2, 1, $member['newpm']);
+				C::t('common_member')->update($member['uid'], array('newpm'=>$newpm));
+			} elseif($_GET['notifymembers'] == 'notice') {
+				notification_add($member['uid'], 'system', 'system_notice', array('subject' => $subject, 'message' => $message.$addmsg, 'from_id' => 0, 'from_idtype' => 'sendnotice'), 1);
+			} elseif($_GET['notifymembers'] == 'email') {
+				if(!sendmail("$member[username] <$member[email]>", $subject, $message.$addmsg)) {
+					runlog('sendmail', "$member[email] sendmail failed.");
 				}
-
 			}
-		} else {
-			foreach($members as $member) {
-				if($_GET['notifymembers'] == 'pm') {
-					C::t('common_member_grouppm')->insert(array(
-						'uid' => $member['uid'],
-						'gpmid' => $gpmid,
-						'status' => 0
-					), false, true);
-					$newpm = setstatus(2, 1, $member['newpm']);
-					C::t('common_member')->update($member['uid'], array('newpm'=>$newpm));
-				} elseif($_GET['notifymembers'] == 'notice') {
-					notification_add($member['uid'], 'system', 'system_notice', array('subject' => $subject, 'message' => $message.$addmsg, 'from_id' => 0, 'from_idtype' => 'sendnotice'), 1);
-				} elseif($_GET['notifymembers'] == 'email') {
-					if(!sendmail("$member[username] <$member[email]>", $subject, $message.$addmsg)) {
-						runlog('sendmail', "$member[email] sendmail failed.");
+
+			$log = array();
+			if($_GET['updatecredittype'] == 0) {
+				foreach($setarr as $key => $val) {
+					if(empty($val)) continue;
+					$val = intval($val);
+					$id = intval($key);
+					$id = !$id && substr($key, 0, -1) == 'extcredits' ? intval(substr($key, -1, 1)) : $id;
+					if(0 < $id && $id < 9) {
+							$log['extcredits'.$id] = $val;
 					}
 				}
-
-				$log = array();
-				if($_GET['updatecredittype'] == 0) {
-					foreach($setarr as $key => $val) {
-						if(empty($val)) continue;
-						$val = intval($val);
-						$id = intval($key);
-						$id = !$id && substr($key, 0, -1) == 'extcredits' ? intval(substr($key, -1, 1)) : $id;
-						if(0 < $id && $id < 9) {
-								$log['extcredits'.$id] = $val;
-						}
+				$logtype = 'RPR';
+			} else {
+				foreach($setarr as $val) {
+					if(empty($val)) continue;
+					$id = intval($val);
+					$id = !$id && substr($val, 0, -1) == 'extcredits' ? intval(substr($val, -1, 1)) : $id;
+					if(0 < $id && $id < 9) {
+						$log['extcredits'.$id] = '-1';
 					}
-					$logtype = 'RPR';
-				} else {
-					foreach($setarr as $val) {
-						if(empty($val)) continue;
-						$id = intval($val);
-						$id = !$id && substr($val, 0, -1) == 'extcredits' ? intval(substr($val, -1, 1)) : $id;
-						if(0 < $id && $id < 9) {
-							$log['extcredits'.$id] = '-1';
-						}
-					}
-					$logtype = 'RPZ';
 				}
-				include_once libfile('function/credit');
-				credit_log($member['uid'], $logtype, $member['uid'], $log);
-
-				$continue = TRUE;
+				$logtype = 'RPZ';
 			}
+			include_once libfile('function/credit');
+			credit_log($member['uid'], $logtype, $member['uid'], $log);
+
+			$continue = TRUE;
 		}
 	}
 
@@ -3310,15 +3299,7 @@ function notifymembers($operation, $variable) {
 
 function banlog($username, $origgroupid, $newgroupid, $expiration, $reason, $status = 0) {
 	global $_G, $_POST;
-	$cloud_apps = dunserialize($_G['setting']['cloud_apps']);
-	if (isset($_POST['bannew']) && $_POST['formhash'] && $cloud_apps['security']['status'] == 'normal') {
-		$securityService = Cloud::loadClass('Service_Security');
-		if ($_POST['bannew']) {
-			$securityService->logBannedMember($username, $reason);
-		} else {
-			$securityService->updateMemberRecover($username);
-		}
-    }
+	$cloud_apps = dunserialize($_G['setting']['cloud_apps']);	
 	writelog('banlog', dhtmlspecialchars("$_G[timestamp]\t{$_G[member][username]}\t$_G[groupid]\t$_G[clientip]\t$username\t$origgroupid\t$newgroupid\t$expiration\t$reason\t$status"));
 }
 

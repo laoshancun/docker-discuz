@@ -112,12 +112,8 @@ if(!$operation) {
 		$pendtime = $_GET['pendtime'];
 		$mstarttime = $_GET['mstarttime'];
 		$mendtime = $_GET['mendtime'];
-
-		$appService = Cloud::loadClass('Service_App');
-		$secStatus = $appService->getCloudAppStatus('security');
-		if($secStatus){
-			$security = $_GET['security'];
-		}
+		
+		$secStatus = false;		
 
 		$searchsubmit = $_GET['searchsubmit'];
 
@@ -136,6 +132,7 @@ if(!$operation) {
 			array('search', 'recyclebin&operation=search', 1),
 			array('clean', 'recyclebin&operation=clean', 0)
 		));
+		/*search={"nav_recyclebin":"action=recyclebin","search":"action=recyclebin&operation=search"}*/
 		echo <<<EOT
 <script type="text/javascript" src="static/js/calendar.js"></script>
 <script type="text/JavaScript">
@@ -164,6 +161,7 @@ EOT;
 		showtablefooter();
 		showformfooter();
 		showtagfooter('div');
+		/*search*/
 
 		if(submitcheck('searchsubmit')) {
 
@@ -283,12 +281,14 @@ EOT;
 			array('search', 'recyclebin&operation=search', 0),
 			array('clean', 'recyclebin&operation=clean', 1)
 		));
+		/*search={"nav_recyclebin":"action=recyclebin","clean":"action=recyclebin&operation=clean"}*/
 		showformheader('recyclebin&operation=clean');
 		showtableheader('recyclebin_clean');
 		showsetting('recyclebin_clean_days', 'days', '30', 'text');
 		showsubmit('rbsubmit');
 		showtablefooter();
 		showformfooter();
+		/*search*/
 
 	} else {
 

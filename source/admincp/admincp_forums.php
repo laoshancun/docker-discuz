@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_forums.php 34181 2013-10-29 08:23:15Z nemohou $
+ *      $Id: admincp_forums.php 36345 2017-01-12 01:55:04Z nemohou $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -466,10 +466,7 @@ var rowtypedata = [
 		C::t('forum_forum')->delete_by_fid($source);
 		C::t('home_favorite')->delete_by_id_idtype($source, 'fid');
 		C::t('forum_moderator')->delete_by_fid($source);
-		C::t('common_member_forum_buylog')->delete_by_fid($target);
-
-		$log_handler = Cloud::loadClass('Cloud_Service_SearchHelper');
-		$log_handler->myThreadLog('mergeforum', array('fid' => $source, 'otherid' => $target));
+		C::t('common_member_forum_buylog')->delete_by_fid($target);		
 
 		$query = C::t('forum_access')->fetch_all_by_fid_uid($source);
 		foreach($query as $access) {
@@ -621,6 +618,7 @@ var rowtypedata = [
 
 		if(count($mforum) == 1 && $mforum[0]['type'] == 'group') {
 			$mforum[0]['extra'] = dunserialize($mforum[0]['extra']);
+			/*search={"forums_admin":"action=forums","forums_edit":"action=forums&operation=edit"}*/
 			showtableheader();
 			showsetting('forums_edit_basic_cat_name', 'namenew', $mforum[0]['name'], 'text');
 			showsetting('forums_edit_basic_cat_name_color', 'extranew[namecolor]', $mforum[0]['extra']['namecolor'], 'color');
@@ -628,7 +626,7 @@ var rowtypedata = [
 			showsetting('forums_edit_extend_forum_horizontal', 'forumcolumnsnew', $mforum[0]['forumcolumns'], 'text');
 			showsetting('forums_edit_extend_cat_sub_horizontal', 'catforumcolumnsnew', $mforum[0]['catforumcolumns'], 'text');
 			if(!empty($_G['setting']['domain']['root']['forum'])) {
-				showsetting('forums_edit_extend_domain', '', '', 'http://<input type="text" name="domainnew" class="txt" value="'.$mforum[0]['domain'].'" style="width:100px; margin-right:0px;" >.'.$_G['setting']['domain']['root']['forum']);
+				showsetting('forums_edit_extend_domain', '', '', $_G['scheme'].'://<input type="text" name="domainnew" class="txt" value="'.$mforum[0]['domain'].'" style="width:100px; margin-right:0px;" >.'.$_G['setting']['domain']['root']['forum']);
 			} else {
 				showsetting('forums_edit_extend_domain', 'domainnew', '', 'text', 'disabled');
 			}
@@ -642,6 +640,7 @@ var rowtypedata = [
 			showsetting('forums_edit_basic_seodescription', 'seodescriptionnew', dhtmlspecialchars($mforum[0]['seodescription']), 'textarea');
 			showsubmit('detailsubmit');
 			showtablefooter();
+			/*search*/
 
 		} else {
 
@@ -759,6 +758,7 @@ var rowtypedata = [
 
 				$_G['multisetting'] = $multiset ? 1 : 0;
 				showmultititle();
+				/*search={"forums_admin":"action=forums","forums_edit_basic":"action=forums&operation=edit&anchor=basic"}*/
 				showtagheader('div', 'basic', $anchor == 'basic');
 				if(!$multiset) {
 					showtips('forums_edit_tips');
@@ -800,7 +800,7 @@ var rowtypedata = [
 				showsetting('forums_edit_basic_keys', 'keysnew', $forumkeys[$fid], 'text');
 				if(!empty($_G['setting']['domain']['root']['forum'])) {
 					$iname = $multiset ? "multinew[{$_G[showsetting_multi]}][domainnew]" : 'domainnew';
-					showsetting('forums_edit_extend_domain', '', '', 'http://<input type="text" name="'.$iname.'" class="txt" value="'.$forum['domain'].'" style="width:100px; margin-right:0px;" >.'.$_G['setting']['domain']['root']['forum']);
+					showsetting('forums_edit_extend_domain', '', '', $_G['scheme'].'://<input type="text" name="'.$iname.'" class="txt" value="'.$forum['domain'].'" style="width:100px; margin-right:0px;" >.'.$_G['setting']['domain']['root']['forum']);
 				} elseif(!$multiset) {
 					showsetting('forums_edit_extend_domain', 'domainnew', '', 'text', 'disabled');
 				}
@@ -814,7 +814,9 @@ var rowtypedata = [
 				showsetting('forums_edit_basic_seodescription', 'seodescriptionnew', dhtmlspecialchars($forum['seodescription']), 'textarea');
 				showtablefooter();
 				showtagfooter('div');
+				/*search*/
 
+				/*search={"forums_admin":"action=forums","forums_edit_extend":"action=forums&operation=edit&anchor=extend"}*/
 				showtagheader('div', 'extend', $anchor == 'extend');
 				if(!$multiset) {
 					showtips('forums_edit_tips');
@@ -890,7 +892,9 @@ var rowtypedata = [
 				showsetting('forums_edit_extend_recommend_dateline', 'modrecommendnew[dateline]', $forum['modrecommend']['dateline'], 'text');
 				showtablefooter();
 				showtagfooter('div');
+				/*search*/
 
+				/*search={"forums_admin":"action=forums","forums_edit_posts":"action=forums&operation=edit&anchor=posts"}*/
 				showtagheader('div', 'posts', $anchor == 'posts');
 				if(!$multiset) {
 					showtips('forums_edit_tips');
@@ -920,7 +924,7 @@ var rowtypedata = [
 					cplang('thread_activity'),
 					cplang('thread_debate')
 				)), $forum['allowpostspecial'], 'binmcheckbox');
-				$threadpluginarray = '';
+				$threadpluginarray = array();
 				if(is_array($_G['setting']['threadplugins'])) foreach($_G['setting']['threadplugins'] as $tpid => $data) {
 					$threadpluginarray[] = array($tpid, $data['name']);
 				}
@@ -945,8 +949,10 @@ var rowtypedata = [
 
 				showtablefooter();
 				showtagfooter('div');
+				/*search*/
 
 				if(!$multiset) {
+					/*search={"forums_admin":"action=forums","forums_edit_attachtype":"action=forums&operation=edit&anchor=attachtype"}*/
 					showtagheader('div', 'attachtype', $anchor == 'attachtype');
 					showtips('forums_edit_attachtype_tips');
 					showtableheader();
@@ -955,7 +961,9 @@ var rowtypedata = [
 					echo '<tr><td></td><td colspan="2"><div><a href="###" onclick="addrow(this, 1)" class="addtr">'.$lang['misc_attachtype_add'].'</a></div></tr>';
 					showtablefooter();
 					showtagfooter('div');
+					/*search*/
 
+					/*search={"forums_admin":"action=forums","forums_edit_credits_policy":"action=forums&operation=edit&anchor=credits"}*/
 					showtagheader('div', 'credits', $anchor == 'credits');
 					if(!$multiset) {
 						showtips('forums_edit_tips');
@@ -1014,6 +1022,7 @@ var rowtypedata = [
 					</script>
 EOF;
 					showtagfooter('div');
+					/*search*/
 				}
 
 				if($allowthreadtypes && !$multiset) {
@@ -1039,6 +1048,7 @@ EOF;
 		];
 	</script>
 EOT;
+					/*search={"forums_admin":"action=forums","forums_edit_threadtypes_config":"action=forums&operation=edit&anchor=threadtypes"}*/
 					showtagheader('div', 'threadtypes', $anchor == 'threadtypes');
 					if(!$multiset) {
 						showtips('forums_edit_tips');
@@ -1067,13 +1077,15 @@ EOT;
 
 					showtagheader('div', 'threadtypes_manage', $forum['threadtypes']['status']);
 					showtableheader('forums_edit_threadtypes', 'noborder fixpadding');
-					showsubtitle(array('delete', 'display_order', 'forums_edit_threadtypes_name', 'forums_edit_threadtypes_icon', 'enable', 'forums_edit_threadtypes_moderators'));
+					showsubtitle(array('delete', 'display_order', cplang('forums_edit_threadtypes_name').' '.cplang('tiny_bbcode_support'), 'forums_edit_threadtypes_icon', 'enable', 'forums_edit_threadtypes_moderators'));
 					echo $typeselect;
 					echo '<tr><td colspan="7"><div><a href="###" onclick="addrow(this, 0)" class="addtr">'.cplang('threadtype_infotypes_add').'</a></div></td></tr>';
 					showtablefooter();
 					showtagfooter('div');
 					showtagfooter('div');
+					/*search*/
 
+					/*search={"forums_admin":"action=forums","forums_edit_threadsorts":"action=forums&operation=edit&anchor=threadsorts"}*/
 					showtagheader('div', 'threadsorts', $anchor == 'threadsorts');
 					if(!$multiset) {
 						showtips('forums_edit_tips');
@@ -1097,8 +1109,10 @@ EOT;
 					showtablefooter();
 					showtagfooter('div');
 					showtagfooter('div');
+					/*search*/
 				}
 
+				/*search={"forums_admin":"action=forums","forums_edit_perm_forum":"action=forums&operation=edit&anchor=perm"}*/
 				showtagheader('div', 'perm', $anchor == 'perm');
 				if(!$multiset) {
 					showtips('forums_edit_tips');
@@ -1255,6 +1269,7 @@ EOT;
 					showsetting('forums_edit_perm_spview', array('spviewpermnew', $spviewgroup), $forum['spviewperm'], 'mcheckbox');
 					showsetting('forums_edit_perm_formulapermmessage', 'formulapermmessagenew', $forum['formulapermmessage'], 'textarea');
 					showtablefooter();
+					/*search*/
 
 				}
 				if($pluginsetting) {
@@ -1672,7 +1687,6 @@ EOT;
 							'expiration' => $threadsortsnew['expiration'],
 							'description' => $threadsortsnew['description'],
 							'defaultshow' => $threadsortsnew['default'] ? $threadsortsnew['defaultshow'] : '',
-							'templatelist' => $threadsortsnew['templatelist'],
 							)) : '';
 					} else {
 						$threadsortsnew = '';
@@ -1873,10 +1887,7 @@ EOT;
 		deletethread($tids);
 		deletedomain($fid, 'forum');
 		deletedomain($fid, 'subarea');
-		if($currow + $pp > $total) {
-
-			$log_handler = Cloud::loadClass('Cloud_Service_SearchHelper');
-			$log_handler->myThreadLog('delforum', array('fid' => $fid));
+		if($currow + $pp > $total) {			
 			C::t('forum_forum')->delete_by_fid($fid);
 			C::t('common_nav')->delete_by_type_identifier(5, $fid);
 			C::t('home_favorite')->delete_by_id_idtype($fid, 'fid');

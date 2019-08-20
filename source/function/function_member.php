@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_member.php 33692 2013-08-02 10:26:20Z nemohou $
+ *      $Id: function_member.php 35030 2014-10-23 07:43:23Z laoguozhang $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -184,14 +184,14 @@ function getinvite() {
 		$appid = intval($cookies[2]);
 
 		$invite_code = space_key($uid, $appid);
-		if($code == $invite_code) {
-			$inviteprice = 0;
+		if($code === $invite_code) {
 			$member = getuserbyuid($uid);
 			if($member) {
 				$usergroup = C::t('common_usergroup')->fetch($member['groupid']);
-				$inviteprice = $usergroup['inviteprice'];
+				if(!$usergroup['allowinvite'] || $usergroup['inviteprice'] > 0) return array();
+			} else {
+				return array();
 			}
-			if($inviteprice > 0) return array();
 			$result['uid'] = $uid;
 			$result['appid'] = $appid;
 		}
@@ -249,8 +249,8 @@ function crime($fun) {
 		list(, $uid, $action) = $arg_list;
 		return $crimerecord->$fun($uid, $action);
 	} elseif($fun == 'search') {
-		list(, $action, $username, $operator, $startime, $endtime, $reason, $start, $limit) = $arg_list;
-		return $crimerecord->$fun($action, $username, $operator, $startime, $endtime, $reason, $start, $limit);
+		list(, $action, $username, $operator, $starttime, $endtime, $reason, $start, $limit) = $arg_list;
+		return $crimerecord->$fun($action, $username, $operator, $starttime, $endtime, $reason, $start, $limit);
 	} elseif($fun == 'actions') {
 		return crime_action_ctl::$actions;
 	}
@@ -308,5 +308,11 @@ function checkemail($email) {
 	} elseif($ucresult == -6) {
 		showmessage('profile_email_duplicate', '', array(), array('handle' => false));
 	}
+}
+
+function make_getpws_sign($uid, $idstring) {
+	global $_G;
+	$link = "{$_G['siteurl']}member.php?mod=getpasswd&uid={$uid}&id={$idstring}";
+	return dsign($link);
 }
 ?>

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_core.php 34523 2014-05-15 04:22:29Z nemohou $
+ *      $Id: function_core.php 36342 2017-01-09 01:15:30Z nemohou $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -209,9 +209,6 @@ function dhtmlspecialchars($string, $flags = null) {
 	} else {
 		if($flags === null) {
 			$string = str_replace(array('&', '"', '<', '>'), array('&amp;', '&quot;', '&lt;', '&gt;'), $string);
-			if(strpos($string, '&amp;#') !== false) {
-				$string = preg_replace('/&amp;((#(\d{3,5}|x[a-fA-F0-9]{4}));)/', '&\\1', $string);
-			}
 		} else {
 			if(PHP_VERSION < '5.4.0') {
 				$string = htmlspecialchars($string, $flags);
@@ -310,8 +307,8 @@ function checkrobot($useragent = '') {
 	static $kw_browsers = array('msie', 'netscape', 'opera', 'konqueror', 'mozilla');
 
 	$useragent = strtolower(empty($useragent) ? $_SERVER['HTTP_USER_AGENT'] : $useragent);
-	if(strpos($useragent, 'http://') === false && dstrpos($useragent, $kw_browsers)) return false;
 	if(dstrpos($useragent, $kw_spiders)) return true;
+	if(strpos($useragent, 'http://') === false && dstrpos($useragent, $kw_browsers)) return false;
 	return false;
 }
 function checkmobile() {
@@ -519,6 +516,14 @@ function checktplrefresh($maintpl, $subtpl, $timecompare, $templateid, $cachefil
 function template($file, $templateid = 0, $tpldir = '', $gettplfile = 0, $primaltpl='') {
 	global $_G;
 
+	if($_G['setting']['plugins']['func'][HOOKTYPE]['template']) {
+		$param = func_get_args();
+		$hookreturn = hookscript('template', 'global', 'funcs', array('param' => $param, 'caller' => 'template'), 'template');
+		if($hookreturn) {
+			return $hookreturn;
+		}
+	}
+
 	static $_init_style = false;
 	if($_init_style === false) {
 		C::app()->_init_style();
@@ -615,7 +620,7 @@ function template($file, $templateid = 0, $tpldir = '', $gettplfile = 0, $primal
 		if(strpos($tpldir, 'plugin') && (file_exists(DISCUZ_ROOT.$mobiletplfile) || file_exists(substr(DISCUZ_ROOT.$mobiletplfile, 0, -4).'.php'))) {
 			$tplfile = $mobiletplfile;
 		} elseif(!file_exists(DISCUZ_ROOT.TPLDIR.'/'.$mobiletplfile) && !file_exists(substr(DISCUZ_ROOT.TPLDIR.'/'.$mobiletplfile, 0, -4).'.php')) {
-			$mobiletplfile = './template/default/'.$mobiletplfile;
+			$mobiletplfile = './template/default/'.$file.'.htm';
 			if(!file_exists(DISCUZ_ROOT.$mobiletplfile) && !$_G['forcemobilemessage']) {
 				$tplfile = str_replace($_G['mobiletpl'][IN_MOBILE].'/', '', $tplfile);
 				$file = str_replace($_G['mobiletpl'][IN_MOBILE].'/', '', $file);
@@ -1030,10 +1035,6 @@ function output() {
 	if(defined('IN_MOBILE')) {
 		mobileoutput();
 	}
-	if(!defined('IN_MOBILE') && !defined('IN_ARCHIVER')) {
-		$tipsService = Cloud::loadClass('Service_DiscuzTips');
-		$tipsService->show();
-	}
 	$havedomain = implode('', $_G['setting']['domain']['app']);
 	if($_G['setting']['rewritestatus'] || !empty($havedomain)) {
 		$content = ob_get_contents();
@@ -1086,7 +1087,9 @@ function output_replace($content) {
 			$_G['setting']['output']['preg']['replace'] = str_replace('{CURHOST}', $_G['siteurl'], $_G['setting']['output']['preg']['replace']);
 		}
 
-		$content = preg_replace($_G['setting']['output']['preg']['search'], $_G['setting']['output']['preg']['replace'], $content);
+		foreach($_G['setting']['output']['preg']['search'] as $key => $value) {
+			$content = preg_replace_callback($value, create_function('$matches', 'return '.$_G['setting']['output']['preg']['replace'][$key].';'), $content);
+		}
 	}
 
 	return $content;
@@ -1164,7 +1167,7 @@ function hookscript($script, $hscript, $type = 'funcs', $param = array(), $func 
 					if(!method_exists($pluginclasses[$classkey], $hookfunc[1])) {
 						continue;
 					}
-					$return = $pluginclasses[$classkey]->$hookfunc[1]($param);
+					$return = call_user_func(array($pluginclasses[$classkey], $hookfunc[1]), $param);
 
 					if(substr($hookkey, -7) == '_extend' && !empty($_G['setting']['pluginhooks'][$hookkey])) {
 						continue;
@@ -1202,11 +1205,11 @@ function hookscriptoutput($tplfile) {
 		return;
 	}
 	hookscript('global', 'global');
+	$_G['hookscriptoutput'] = true;
 	if(defined('CURMODULE')) {
 		$param = array('template' => $tplfile, 'message' => $_G['hookscriptmessage'], 'values' => $_G['hookscriptvalues']);
 		hookscript(CURMODULE, $_G['basescript'], 'outputfuncs', $param);
 	}
-	$_G['hookscriptoutput'] = true;
 }
 
 function pluginmodule($pluginid, $type) {
@@ -1504,6 +1507,11 @@ function dreferer($default = '') {
 	}
 
 	$reurl = parse_url($_G['referer']);
+
+	if(!$reurl || (isset($reurl['scheme']) && !in_array(strtolower($reurl['scheme']), array('http', 'https')))) {
+		$_G['referer'] = '';
+	}
+
 	if(!empty($reurl['host']) && !in_array($reurl['host'], array($_SERVER['HTTP_HOST'], 'www.'.$_SERVER['HTTP_HOST'])) && !in_array($_SERVER['HTTP_HOST'], array($reurl['host'], 'www.'.$reurl['host']))) {
 		if(!in_array($reurl['host'], $_G['setting']['domain']['app']) && !isset($_G['setting']['domain']['list'][$reurl['host']])) {
 			$domainroot = substr($reurl['host'], strpos($reurl['host'], '.')+1);
@@ -1516,7 +1524,7 @@ function dreferer($default = '') {
 	}
 
 	$_G['referer'] = durlencode($_G['referer']);
-	return$_G['referer'];
+	return $_G['referer'];
 }
 
 function ftpcmd($cmd, $arg1 = '') {
@@ -1856,7 +1864,6 @@ function cknewuser($return=0) {
 }
 
 function manyoulog($logtype, $uids, $action, $fid = '') {
-	helper_manyou::manyoulog($logtype, $uids, $action, $fid);
 }
 
 function useractionlog($uid, $action) {
@@ -1868,11 +1875,11 @@ function getuseraction($var) {
 }
 
 function getuserapp($panel = 0) {
-	return helper_manyou::getuserapp($panel);
+	return '';
 }
 
 function getmyappiconpath($appid, $iconstatus=0) {
-	return helper_manyou::getmyappiconpath($appid, $iconstatus);
+	return '';
 }
 
 function getexpiration() {
@@ -1966,19 +1973,10 @@ function updatemoderate($idtype, $ids, $status = 0) {
 }
 
 function userappprompt() {
-	global $_G;
-
-	if($_G['setting']['my_app_status'] && $_G['setting']['my_openappprompt'] && empty($_G['cookie']['userappprompt'])) {
-		$sid = $_G['setting']['my_siteid'];
-		$ts = $_G['timestamp'];
-		$key = md5($sid.$ts.$_G['setting']['my_sitekey']);
-		$uchId = $_G['uid'] ? $_G['uid'] : 0;
-		echo '<script type="text/javascript" src="http://notice.uchome.manyou.com/notice/userNotice?sId='.$sid.'&ts='.$ts.'&key='.$key.'&uchId='.$uchId.'" charset="UTF-8"></script>';
-	}
 }
 
 function dintval($int, $allowarray = false) {
-	$ret = intval($int);
+	$ret = floatval($int);
 	if($int == $ret || !$allowarray && is_array($int)) return $ret;
 	if($allowarray && is_array($int)) {
 		foreach($int as &$v) {
@@ -1997,7 +1995,7 @@ function dintval($int, $allowarray = false) {
 
 
 function makeSearchSignUrl() {
-	return getglobal('setting/my_search_data/status') ? helper_manyou::makeSearchSignUrl() : array();
+	return array();
 }
 
 function get_related_link($extent) {
@@ -2025,7 +2023,7 @@ function check_diy_perm($topic = array(), $flag = '') {
 function strhash($string, $operation = 'DECODE', $key = '') {
 	$key = md5($key != '' ? $key : getglobal('authkey'));
 	if($operation == 'DECODE') {
-		$hashcode = gzuncompress(base64_decode(($string)));
+		$hashcode = gzuncompress(base64_decode($string));
 		$string = substr($hashcode, 0, -16);
 		$hash = substr($hashcode, -16);
 		unset($hashcode);
@@ -2086,6 +2084,17 @@ function currentlang() {
 		return '';
 	}
 }
+if(PHP_VERSION < '7.0.0') {
+	function dpreg_replace($pattern, $replacement, $subject, $limit = -1, &$count) {
+		return preg_replace($pattern, $replacement, $subject, $limit, $count);
+	}
+} else {
+	function dpreg_replace($pattern, $replacement, $subject, $limit = -1, &$count) {
+		require_once libfile('function/preg');
+		return _dpreg_replace($pattern, $replacement, $subject, $limit, $count);
+	}
+}
+
 
 
 ?>

@@ -57,7 +57,7 @@ $lang = array(
 
 	'mail_succeed' => '邮件发送成功 ',
 	'mail_false' => '邮件发送失败',
-	
+
 	'user_edit_noperm' => '您没权限编辑此用户',
 
 	'appid_invalid' => '应用id不合法',
@@ -68,6 +68,6 @@ $lang = array(
 	'pm_send_regdays_error' => '注册 #$pmsendregdays 天之内不能发送短消息',
 	'pm_send_limit1day_error' => '对不起，超出了您24小时最大发送短消息数，请返回。',
 	'pm_send_floodctrl_error' => '对不起，您两次发送短消息间隔太短，请返回。',
-	
+
 	'file_check_failed' => '校验文件不存在，无法校验',
 );

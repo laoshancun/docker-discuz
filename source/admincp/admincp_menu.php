@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_menu.php 34521 2014-05-14 09:07:25Z nemohou $
+ *      $Id: admincp_menu.php 36284 2016-12-12 00:47:50Z nemohou $
  */
 
 global $_G;
@@ -166,8 +166,7 @@ $menu['group'] = array(
 );
 
 $menu['safe'] = array(
-	array('menu_safe_setting', 'setting_sec'),
-	array('menu_safe_security', 'cloud_security'),
+	array('menu_safe_setting', 'setting_sec'),	
 	array('menu_safe_seccheck', 'setting_seccheck'),
 	array('menu_security', 'optimizer_security'),
 	array('menu_safe_accountguard', 'setting_accountguard'),
@@ -236,21 +235,18 @@ $menu['tools'] = array(
 	$isfounder ? array('menu_tools_fileperms', 'tools_fileperms') : null,
 	$isfounder ? array('menu_tools_filecheck', 'checktools_filecheck') : null,
 	$isfounder ? array('menu_tools_hookcheck', 'checktools_hookcheck') : null,
-	$isfounder ? array('menu_cloud_doctor', 'cloud_doctor') : null,
 );
 if($isfounder) {
 	$topmenu['founder'] = '';
 
 	$menu['founder'] = array(
 		array('menu_founder_perm', 'founder_perm'),
-		array('menu_setting_mail', 'setting_mail'),
-		array('menu_patch', 'patch'),
+		array('menu_setting_mail', 'setting_mail'),		
 		array('menu_setting_uc', 'setting_uc'),
 		array('menu_db', 'db_export'),
 		array('menu_membersplit', 'membersplit_check'),
 		array('menu_postsplit', 'postsplit_manage'),
 		array('menu_threadsplit', 'threadsplit_manage'),
-		array('menu_upgrade', 'upgrade'),
 		array('menu_optimizer', 'optimizer_performance'),
 	);
 

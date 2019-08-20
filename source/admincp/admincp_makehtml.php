@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_makehtml.php 34354 2014-03-19 08:32:46Z hypowang $
+ *      $Id: admincp_makehtml.php 35041 2014-10-29 08:05:36Z nemohou $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_DISCUZ')) {
@@ -49,6 +49,7 @@ if(!in_array($operation, array('aids', 'catids', 'topicids'))) {
 	showsubmenu('html', $_nav, '');
 }
 if($operation == 'all') {
+	/*search={"¨¦¨²3¨¦¨¨?2?":"action=makehtml&operation=all"}*/
 	showtips('makehtml_tips_all');
 
 	showformheader('makehtml&operation=all');
@@ -136,6 +137,7 @@ function make_html_article(starttime) {
 EOT;
 	showtablefooter();
 	showformfooter();
+	/*search*/
 } elseif($operation == 'index') {
 
 	showtips('makehtml_tips_index');
@@ -414,6 +416,7 @@ EOT;
 } elseif ($operation == 'makehtmlsetting') {
 
 	if(!submitcheck('makehtmlsetting')) {
+		/*search={"html":"action=makehtml&operation=makehtmlsetting","setting_functions_makehtml":"action=makehtml&operation=makehtmlsetting"}*/
 		$setting = $_G['setting'];
 		showformheader("makehtml&operation=makehtmlsetting");
 		showtableheader('', 'nobottom', 'id="makehtml"'.($_GET['operation'] != 'makehtmlsetting' ? ' style="display: none"' : ''));
@@ -433,6 +436,7 @@ EOT;
 		showtablefooter();
 		showsubmit('makehtmlsetting', 'submit');
 		showformfooter();
+		/*search*/
 	} else {
 		$settingnew = $_GET['settingnew'];
 		if(isset($settingnew['makehtml'])) {
@@ -450,13 +454,13 @@ EOT;
 			$settingnew['makehtml']['articlehtmldir'] = trim($settingnew['makehtml']['articlehtmldir'], ' /\\');
 			$re = NULL;
 			preg_match_all('/[^\w\d\_\\]/',$settingnew['makehtml']['articlehtmldir'],$re);
-			if(!empty($re[0])) {
+			if(!empty($re[0]) || !check_html_dir($settingnew['makehtml']['articlehtmldir'])) {
 				cpmsg(cplang('setting_functions_makehtml_articlehtmldir_invalid').','.cplang('return'), NULL, 'error');
 			}
 			$settingnew['makehtml']['topichtmldir'] = trim($settingnew['makehtml']['topichtmldir'], ' /\\');
 			$re = NULL;
 			preg_match_all('/[^\w\d\_\\]/',$settingnew['makehtml']['topichtmldir'],$re);
-			if(!empty($re[0])) {
+			if(!empty($re[0]) || !check_html_dir($settingnew['makehtml']['topichtmldir'])) {
 				cpmsg(cplang('setting_functions_makehtml_topichtmldir_invalid').','.cplang('return'), NULL, 'error');
 			}
 			$topichtmldir = realpath($settingnew['makehtml']['topichtmldir']);
@@ -490,6 +494,7 @@ EOT;
 		cpmsg('admincp_makehtml_cleanhtml_error', 'action=makehtml&operation=makehtmlsetting', 'error');
 	} else {
 		if(!submitcheck('cleanhtml')) {
+			/*search={"??¨¤¨ªHTML":"action=makehtml&operation=htmlclean"}*/
 
 			showformheader("makehtml&operation=cleanhtml");
 			showtableheader();
@@ -498,6 +503,7 @@ EOT;
 			showtablefooter();
 			showsubmit('cleanhtml', 'submit');
 			showformfooter();
+			/*search*/
 		} else {
 			if(isset($_GET['cleandata'])) {
 				$cleandata = $_GET['cleandata'];
@@ -608,5 +614,14 @@ function check_son_folder($file, $cat) {
 		}
 	}
 	return false;
+}
+
+function check_html_dir($dir) {
+	$dir = str_replace("\\", '/', $dir);
+	list($first) = explode('/', $dir);
+	if(in_array(strtolower($first), array('template', 'source', 'config', 'api', 'archiver'), true)) {
+		return false;
+	}
+	return true;
 }
 ?>

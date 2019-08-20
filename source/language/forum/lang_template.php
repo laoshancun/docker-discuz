@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: lang_template.php 33872 2013-08-23 08:54:40Z nemohou $
+ *      $Id: lang_template.php 36334 2017-01-03 01:32:35Z nemohou $
  *
  *      This file is automatically generate
  */
@@ -949,6 +949,9 @@ $lang = array (
   'topicadmin_warn_delete' => '解除',
   'topicadmin_warn_nums' => '用户 $warningauthor 已被警告 $authorwarnings 次',
   'topicadmin_warn_prompt' => '{$_G[setting][warningexpiration]} 天内累计被警告 {$_G[setting][warninglimit]} 次，将被自动禁止发帖 {$_G[setting][warningexpiration]} 天',
+  'topicadmin_useropt' => '用户操作',
+  'topicadmin_banuser' => '禁言',
+  'topicadmin_userdelpost' => '清空帖子',
   'admin_ban_this_ip' => '禁止此 IP',
   'admin_user_this_ip' => '此 IP 下用户',
   'admin_bump_down' => '提升下沉',

@@ -57,6 +57,7 @@ if(!submitcheck('prunesubmit')) {
 		array('prune_search', !$searchsubmit),
 		array('nav_prune', $searchsubmit)
 	));
+	/*search={"nav_prune":"action=prune"}*/
 	showtips('prune_tips');
 	echo <<<EOT
 <script type="text/javascript" src="static/js/calendar.js"></script>
@@ -94,6 +95,7 @@ EOT;
 	showtablefooter();
 	showformfooter();
 	showtagfooter('div');
+	/*search*/
 
 } else {
 
@@ -102,7 +104,6 @@ EOT;
 
 	loadcache('posttableids');
 	$posttable = in_array($_GET['posttableid'], $_G['cache']['posttableids']) ? $_GET['posttableid'] : 0;
-	$log_handler = Cloud::loadClass('Cloud_Service_SearchHelper');
 	foreach(C::t('forum_post')->fetch_all($posttable, ($pids ? explode(',', $pids) : $_GET['pidarray']), false) as $post) {
 		$prune['forums'][] = $post['fid'];
 		$prune['thread'][$post['tid']]++;
@@ -110,12 +111,6 @@ EOT;
 		$pidsdelete[] = $post['pid'];
 		if($post['first']) {
 			$tidsdelete[] = $post['tid'];
-		}
-
-		if($post['first']) {
-			$log_handler->myThreadLog('delete', array('tid' => $post['tid']));
-		} else {
-			$log_handler->myPostLog('delete', array('pid' => $post['pid']));
 		}
 	}
 

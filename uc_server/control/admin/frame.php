@@ -32,7 +32,7 @@ class control extends adminbase {
 	}
 
 	function onmain() {
-		$ucinfo = '<sc'.'ript language="Jav'.'aScript" src="ht'.'tp:/'.'/cus'.'tome'.'r.disc'.'uz.n'.'et/ucn'.'ews'.'.p'.'hp?'.$this->_get_uc_info().'"></s'.'cri'.'pt>';
+		$ucinfo = '';
 		$this->view->assign('ucinfo', $ucinfo);
 
 		$members = $this->_get_uc_members();
@@ -133,7 +133,7 @@ class control extends adminbase {
 		$notes = $this->db->result_first("SELECT COUNT(*) FROM ".UC_DBTABLEPRE."notelist WHERE closed='0'");
 		return $notes;
 	}
-	
+
 	function _get_uc_errornotes($applist) {
 		$notelist = $this->db->fetch_all("SELECT * FROM ".UC_DBTABLEPRE."notelist ORDER BY dateline DESC LIMIT 20");
 		$error = array();

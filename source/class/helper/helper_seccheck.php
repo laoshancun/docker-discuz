@@ -83,9 +83,15 @@ class helper_seccheck {
 		if($_G['cache']['secqaa'][$secqaakey]['type']) {
 			$etype = explode(':', $_G['cache']['secqaa'][$secqaakey]['question']);
 			if(count($etype) > 1) {
+				if(!preg_match('/^\w+$/', $etype[0]) || !preg_match('/^\w+$/', $etype[1])) {
+					return;
+				}
 				$qaafile = DISCUZ_ROOT.'./source/plugin/'.$etype[0].'/secqaa/secqaa_'.$etype[1].'.php';
 				$class = $etype[1];
 			} else {
+				if(!preg_match('/^\w+$/', $_G['cache']['secqaa'][$secqaakey]['question'])) {
+					return;
+				}
 				$qaafile = libfile('secqaa/'.$_G['cache']['secqaa'][$secqaakey]['question'], 'class');
 				$class = $_G['cache']['secqaa'][$secqaakey]['question'];
 			}
@@ -117,9 +123,15 @@ class helper_seccheck {
 		if(!is_numeric($_G['setting']['seccodedata']['type'])) {
 			$etype = explode(':', $_G['setting']['seccodedata']['type']);
 			if(count($etype) > 1) {
+				if(!preg_match('/^\w+$/', $etype[0]) || !preg_match('/^\w+$/', $etype[1])) {
+					return false;
+				}
 				$codefile = DISCUZ_ROOT.'./source/plugin/'.$etype[0].'/seccode/seccode_'.$etype[1].'.php';
 				$class = $etype[1];
 			} else {
+				if(!preg_match('/^\w+$/', $_G['setting']['seccodedata']['type'])) {
+					return false;
+				}
 				$codefile = libfile('seccode/'.$_G['setting']['seccodedata']['type'], 'class');
 				$class = $_G['setting']['seccodedata']['type'];
 			}
@@ -295,16 +307,6 @@ class helper_seccheck {
 		}
 		if(method_exists('helper_seccheck', 'rule_'.$rule)) {
 			$return = call_user_func(array('helper_seccheck', 'rule_'.$rule), $param);
-			if(!isset($_G['cookie']['seccloud'])) {
-				if($_G['setting']['seccodedata']['cloudip'] && !$return[0]) {
-					$return[0] = captcha::isneed();
-					if($return[0]) {
-						dsetcookie('seccloud', 1);
-					}
-				}
-			} else {
-				$return[0] = true;
-			}
 			return $return;
 		} else {
 			return array();

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_post.php 33291 2013-05-22 05:59:13Z nemohou $
+ *      $Id: function_post.php 35198 2015-02-04 03:44:54Z hypowang $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -581,6 +581,7 @@ function messagecutstr($str, $length = 0, $dot = ' ...') {
 			"/\[($bbcodesclear)=?.*?\].+?\[\/\\1\]/si",
 			"/\[($bbcodes)=?.*?\]/i",
 			"/\[\/($bbcodes)\]/i",
+			"/\\\\u/i"
 		), array(
 			"[b]$language[post_hidden][/b]",
 			'',
@@ -589,6 +590,7 @@ function messagecutstr($str, $length = 0, $dot = ' ...') {
 			'',
 			'',
 			'',
+		        '%u'
 		), $str));
 	if($length) {
 		$str = cutstr($str, $length, $dot);
@@ -629,8 +631,7 @@ function setthreadcover($pid, $tid = 0, $aid = 0, $countimg = 0, $imgurl = '') {
 			$tid = empty($tid) ? $attach['tid'] : $tid;
 			$picsource = ($attach['remote'] ? $_G['setting']['ftp']['attachurl'] : $_G['setting']['attachurl']).'forum/'.$attach['attachment'];
 		} else {
-			$attachtable = 'pid:'.$pid;
-			$picsource = $imgurl;
+			return true;
 		}
 
 		$basedir = !$_G['setting']['attachdir'] ? (DISCUZ_ROOT.'./data/attachment/') : $_G['setting']['attachdir'];

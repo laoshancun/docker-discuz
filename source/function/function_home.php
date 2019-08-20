@@ -4,14 +4,14 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_home.php 30195 2012-05-16 07:15:03Z zhengqingpeng $
+ *      $Id: function_home.php 36284 2016-12-12 00:47:50Z nemohou $
  */
 
 if(!defined('IN_DISCUZ')) {
 	exit('Access Denied');
 }
 
-function getstr($string, $length, $in_slashes=0, $out_slashes=0, $bbcode=0, $html=0) {
+function getstr($string, $length = 0, $in_slashes=0, $out_slashes=0, $bbcode=0, $html=0) {
 	global $_G;
 
 	$string = trim($string);
@@ -92,25 +92,9 @@ function ckstart($start, $perpage) {
 
 
 function get_my_app() {
-	global $_G;
-
-	if($_G['setting']['my_app_status']) {
-		foreach(C::t('common_myapp')->fetch_all_by_flag(1, '=', 'DESC') as $value) {
-			$_G['my_app'][$value['appid']] = $value;
-		}
-	}
 }
 
 function get_my_userapp() {
-	global $_G;
-
-	if($_G['setting']['my_app_status'] && $_G['uid']) {
-		foreach(C::t('home_userapp')->fetch_all_by_uid_appid($_G['uid'], 0, 'displayorder') as $value) {
-			if(!empty($value['appname'])) {
-				$_G['my_userapp'][$value['appid']] = $value;
-			}
-		}
-	}
 }
 
 function getspace($uid) {
@@ -267,11 +251,11 @@ function space_domain($space) {
 	if($_G['setting']['allowspacedomain'] && $_G['setting']['domain']['root']['home']) {
 		space_merge($space, 'field_home');
 		if($space['domain']) {
-			$space['domainurl'] = 'http://'.$space['domain'].'.'.$_G['setting']['domain']['root']['home'];
+			$space['domainurl'] = $_G['scheme'].'://'.$space['domain'].'.'.$_G['setting']['domain']['root']['home'];
 		}
 	}
 	if(!empty($_G['setting']['domain']['app']['home'])) {
-		$space['domainurl'] = 'http://'.$_G['setting']['domain']['app']['home'].'/?'.$space['uid'];
+		$space['domainurl'] = $_G['scheme'].'://'.$_G['setting']['domain']['app']['home'].'/?'.$space['uid'];
 	} elseif(empty($space['domainurl'])) {
 		$space['domainurl'] = $_G['siteurl'].'?'.$space['uid'];
 	}
@@ -332,10 +316,6 @@ function sarray_rand($arr, $num=1) {
 }
 
 function my_showgift() {
-	global $_G, $space;
-	if($_G['setting']['my_showgift'] && $_G['my_userapp'][$_G['home_gift_appid']]) {
-		echo '<script language="javascript" type="text/javascript" src="http://gift.manyou-apps.com/recommend.js"></script>';
-	}
 }
 
 function getsiteurl() {

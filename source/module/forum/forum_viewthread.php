@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: forum_viewthread.php 34125 2013-10-15 09:24:41Z jeffjzhang $
+ *      $Id: forum_viewthread.php 36348 2017-01-13 06:36:44Z nemohou $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -17,6 +17,10 @@ require_once libfile('function/post');
 
 $thread = & $_G['forum_thread'];
 $forum = & $_G['forum'];
+
+if(!empty($_GET['checkrush']) && preg_match('/[^0-9_]/', $_GET['checkrush'])) {
+	$_GET['checkrush'] = '';
+}
 
 if(!$_G['forum_thread'] || !$_G['forum']) {
 	showmessage('thread_nonexistence');
@@ -258,6 +262,8 @@ if($_G['forum_thread']['replycredit'] > 0) {
 	$_G['forum_thread']['replycredit_rule'] = C::t('forum_replycredit')->fetch($thread['tid']);
 	$_G['forum_thread']['replycredit_rule']['remaining'] = $_G['forum_thread']['replycredit'] / $_G['forum_thread']['replycredit_rule']['extcredits'];
 	$_G['forum_thread']['replycredit_rule']['extcreditstype'] = $_G['forum_thread']['replycredit_rule']['extcreditstype'] ? $_G['forum_thread']['replycredit_rule']['extcreditstype'] : $_G['setting']['creditstransextra'][10] ;
+} else {
+	$_G['forum_thread']['replycredit_rule']['extcreditstype'] = $_G['setting']['creditstransextra'][10];
 }
 $_G['group']['raterange'] = $_G['setting']['modratelimit'] && $adminid == 3 && !$_G['forum']['ismoderator'] ? array() : $_G['group']['raterange'];
 
@@ -378,12 +384,15 @@ $onlyauthoradd = $threadplughtml = '';
 
 $maxposition = 0;
 if(empty($_GET['viewpid'])) {
-	$disablepos = !$rushreply && C::t('forum_threaddisablepos')->fetch($_G['tid']) ? 1 : 0;
-	if(!$disablepos && !in_array($_G['forum_thread']['special'], array(2,3,5))) {
-		if($_G['forum_thread']['maxposition']) {
-			$maxposition = $_G['forum_thread']['maxposition'];
-		} else {
-			$maxposition = C::t('forum_post')->fetch_maxposition_by_tid($posttableid, $_G['tid']);
+	if(!in_array($_G['forum_thread']['special'], array(2,3,5))) {
+		$disablepos = !$rushreply && C::t('forum_threaddisablepos')->fetch($_G['tid']) ? 1 : 0;
+		if(!$disablepos) {
+			if($_G['forum_thread']['maxposition']) {
+				$maxposition = $_G['forum_thread']['maxposition'];
+			} else {
+				$maxposition = C::t('forum_post')->fetch_maxposition_by_tid($posttableid, $_G['tid']);
+				C::t('forum_thread')->update($_G['tid'], array('maxposition' => $maxposition));
+			}
 		}
 	}
 
@@ -581,6 +590,9 @@ if(!$maxposition && empty($postarr)) {
 		} else {
 			$post = C::t('forum_post')->fetch('tid:'.$_G['tid'], $_GET['viewpid']);
 		}
+		if($post['tid'] != $_G['tid']) {
+			$post = array();
+		}
 
 		if($post) {
 			if($visibleallflag || (!$visibleallflag && !$post['invisible'])) {
@@ -657,7 +669,7 @@ foreach($postarr as $post) {
 				continue;
 			}
 			$_G['forum_firstpid'] = $post['pid'];
-			if(IS_ROBOT || $_G['adminid'] == 1) $summary = str_replace(array("\r", "\n"), '', messagecutstr(strip_tags($post['message']), 160));
+			if(!$_G['forum_thread']['price'] && (IS_ROBOT || $_G['adminid'] == 1)) $summary = str_replace(array("\r", "\n"), '', messagecutstr(strip_tags($post['message']), 160));
 			$tagarray_all = $posttag_array = array();
 			$tagarray_all = explode("\t", $post['tags']);
 			if($tagarray_all) {
@@ -863,7 +875,7 @@ if($_G['forum_cachepid']) {
 	foreach(C::t('forum_postcache')->fetch_all($_G['forum_cachepid']) as $postcache) {
 		if($postcache['rate']) {
 			$postcache['rate'] = dunserialize($postcache['rate']);
-			$postlist[$postcache['pid']]['ratelog'] = $postcache['rate']['ratelogs'];
+			$postlist[$postcache['pid']]['ratelog'] = dhtmlspecialchars($postcache['rate']['ratelogs']);
 			$postlist[$postcache['pid']]['ratelogextcredits'] = $postcache['rate']['extcredits'];
 			$postlist[$postcache['pid']]['totalrate'] = $postcache['rate']['totalrate'];
 		}
@@ -1024,7 +1036,7 @@ function viewthread_updateviews($tableid) {
 
 	if(!$_G['setting']['preventrefresh'] || $_G['cookie']['viewid'] != 'tid_'.$_G['tid']) {
 		if(!$tableid && $_G['setting']['optimizeviews']) {
-			if($_G['forum_thread']['addviews']) {
+			if(isset($_G['forum_thread']['addviews'])) {
 				if($_G['forum_thread']['addviews'] < 100) {
 					C::t('forum_threadaddviews')->update_by_tid($_G['tid']);
 				} else {
@@ -1160,7 +1172,7 @@ function viewthread_procpost($post, $lastvisit, $ordertype, $maxposition = 0) {
 		}
 	}
 	$post['attachments'] = array();
-	$post['imagelist'] = $post['attachlist'] = '';
+	$post['imagelist'] = $post['attachlist'] = array();
 
 	if($post['attachment']) {
 		if((!empty($_G['setting']['guestviewthumb']['flag']) && !$_G['uid']) || $_G['group']['allowgetattach'] || $_G['group']['allowgetimage']) {
@@ -1191,7 +1203,7 @@ function viewthread_procpost($post, $lastvisit, $ordertype, $maxposition = 0) {
 			if(!defined('IN_MOBILE')) {
 				$messageindex = false;
 				if(strpos($post['message'], '[/index]') !== FALSE) {
-					$post['message'] = preg_replace("/\s?\[index\](.+?)\[\/index\]\s?/ies", "parseindex('\\1', '$post[pid]')", $post['message']);
+					$post['message'] = preg_replace_callback("/\s?\[index\](.+?)\[\/index\]\s?/is", create_function('$matches', 'return parseindex($matches[1], '.intval($post['pid']).');'), $post['message']);
 					$messageindex = true;
 					unset($_GET['threadindex']);
 				}
@@ -1233,7 +1245,7 @@ function viewthread_procpost($post, $lastvisit, $ordertype, $maxposition = 0) {
 					$post['message'] = parse_related_link($post['message'], $relatedtype);
 				}
 				if(strpos($post['message'], '[/begin]') !== FALSE) {
-					$post['message'] = preg_replace("/\[begin(=\s*([^\[\<\r\n]*?)\s*,(\d*),(\d*),(\d*),(\d*))?\]\s*([^\[\<\r\n]+?)\s*\[\/begin\]/ies", $_G['cache']['usergroups'][$post['groupid']]['allowbegincode'] ? "parsebegin('\\2', '\\7', '\\3', '\\4', '\\5', '\\6');" : '', $post['message']);
+					$post['message'] = preg_replace_callback("/\[begin(=\s*([^\[\<\r\n]*?)\s*,(\d*),(\d*),(\d*),(\d*))?\]\s*([^\[\<\r\n]+?)\s*\[\/begin\]/is", create_function('$matches', 'return '.intval($_G['cache']['usergroups'][$post['groupid']]['allowbegincode']).' ? parsebegin($matches[2], $matches[7], $matches[3], $matches[4], $matches[5], $matches[6]) : \'\';'), $post['message']);
 				}
 			}
 		}
@@ -1246,7 +1258,7 @@ function viewthread_procpost($post, $lastvisit, $ordertype, $maxposition = 0) {
 			$post['message'] = preg_replace("/\s?\[index\](.+?)\[\/index\]\s?/is", '', $post['message']);
 		}
 		if(strpos($post['message'], '[/begin]') !== FALSE) {
-			$post['message'] = preg_replace("/\[begin(=\s*([^\[\<\r\n]*?)\s*,(\d*),(\d*),(\d*),(\d*))?\]\s*([^\[\<\r\n]+?)\s*\[\/begin\]/ies", '', $post['message']);
+			$post['message'] = preg_replace("/\[begin(=\s*([^\[\<\r\n]*?)\s*,(\d*),(\d*),(\d*),(\d*))?\]\s*([^\[\<\r\n]+?)\s*\[\/begin\]/is", '', $post['message']);
 		}
 	}
 	if($imgcontent) {
@@ -1280,7 +1292,7 @@ function viewthread_loadcache() {
 
 			viewthread_updateviews($_G['forum_thread']['threadtableid']);
 			$_G['setting']['debug'] && debuginfo();
-			$_G['setting']['debug'] ? die('<script type="text/javascript">document.getElementById("debuginfo").innerHTML = " '.($_G['setting']['debug'] ? 'Updated at '.gmdate("H:i:s", $threadcache['filemtime'] + 3600 * 8).', Processed in '.$debuginfo['time'].' second(s), '.$debuginfo['queries'].' Queries'.($_G['gzipcompress'] ? ', Gzip enabled' : '') : '').'";</script>') : die();
+			$_G['setting']['debug'] ? die('<script type="text/javascript">document.getElementById("debuginfo").innerHTML = " '.($_G['setting']['debug'] ? 'Updated at '.gmdate("H:i:s", $threadcache['filemtime'] + 3600 * 8).', Processed in '.$debuginfo['time'].' second(s), '.$debuginfo['queries'].' Queries'.($_G['gzipcompress'] ? ', Gzip enabled' : '') : '').'";</script></body></html>') : die('</body></html>');
 		}
 	}
 }
@@ -1345,7 +1357,7 @@ function viewthread_baseinfo($post, $extra) {
 		if($field != 'qq') {
 			$v = profile_show($field, $post);
 		} elseif(!empty($post['qq'])) {
-			$v = '<a href="http://wpa.qq.com/msgrd?V=3&Uin='.$post['qq'].'&Site='.$_G['setting']['bbname'].'&Menu=yes&from=discuz" target="_blank" title="'.lang('spacecp', 'qq_dialog').'"><img src="'.STATICURL.'/image/common/qq_big.gif" alt="QQ" style="margin:0px;"/></a>';
+			$v = '<a href="//wpa.qq.com/msgrd?v=3&uin='.$post['qq'].'&site='.$_G['setting']['bbname'].'&menu=yes&from=discuz" target="_blank" title="'.lang('spacecp', 'qq_dialog').'"><img src="'.STATICURL.'/image/common/qq_big.gif" alt="QQ" style="margin:0px;"/></a>';
 		}
 		if($v) {
 			if(!isset($_G['cache']['profilesetting'])) {
@@ -1588,6 +1600,8 @@ function parsebegin($linkaddr, $imgflashurl, $w = 0, $h = 0, $type = 0, $s = 0) 
 	preg_match("/((https?){1}:\/\/|www\.)[^\[\"']+/i", $imgflashurl, $matches);
 	$imgflashurl = $matches[0];
 	$fileext = fileext($imgflashurl);
+	preg_match("/((https?){1}:\/\/|www\.)[^\[\"']+/i", $linkaddr, $matches);
+	$linkaddr = $matches[0];
 	$randomid = 'swf_'.random(3);
 	$w = ($w >=400 && $w <=1024) ? $w : 900;
 	$h = ($h >=300 && $h <=640) ? $h : 500;

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: sendreply.php 32489 2013-01-29 03:57:16Z monkey $
+ *      $Id: sendreply.php 34771 2014-07-30 09:29:44Z nemohou $
  */
 
 if(!defined('IN_MOBILE_API')) {
@@ -64,15 +64,17 @@ class mobile_api {
 			}
 			C::t('forum_post')->update('tid:'.$values['tid'], $values['pid'], array('status' => $poststatus));
 
-			list($mapx, $mapy, $location) = explode('|', dhtmlspecialchars($_POST['location']));
-			C::t('forum_post_location')->insert(array(
-				'pid' => $values['pid'],
-				'tid' => $values['tid'],
-				'uid' => $_G['uid'],
-				'mapx' => $mapx,
-				'mapy' => $mapy,
-				'location' => $location,
-			));
+			if($_POST['location']) {
+				list($mapx, $mapy, $location) = explode('|', dhtmlspecialchars($_POST['location']));
+				C::t('forum_post_location')->insert(array(
+					'pid' => $values['pid'],
+					'tid' => $values['tid'],
+					'uid' => $_G['uid'],
+					'mapx' => $mapx,
+					'mapy' => $mapy,
+					'location' => $location,
+				));
+			}
 		}
 	}
 

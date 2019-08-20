@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: discuz_database.php 33326 2013-05-28 08:52:45Z kamichen $
+ *      $Id: discuz_database.php 36294 2016-12-14 03:11:30Z nemohou $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -60,7 +60,7 @@ class discuz_database {
 		return self::query("$cmd $table SET $sql", null, $silent, !$return_insert_id);
 	}
 
-	public static function update($table, $data, $condition, $unbuffered = false, $low_priority = false) {
+	public static function update($table, $data, $condition = '', $unbuffered = false, $low_priority = false) {
 		$sql = self::implode($data);
 		if(empty($sql)) {
 			return false;
@@ -83,7 +83,10 @@ class discuz_database {
 		return self::$db->insert_id();
 	}
 
-	public static function fetch($resourceid, $type = 'MYSQL_ASSOC') {
+	public static function fetch($resourceid, $type = null) {
+		if (!isset($type)) {
+			$type = self::$db->drivertype == 'mysqli' ? MYSQLI_ASSOC : MYSQL_ASSOC;
+		}
 		return self::$db->fetch_array($resourceid, $type);
 	}
 
@@ -174,7 +177,7 @@ class discuz_database {
 	public static function quote($str, $noarray = false) {
 
 		if (is_string($str))
-			return '\'' . addcslashes($str, "\n\r\\'\"\032") . '\'';
+			return '\'' . self::$db->escape_string($str) . '\'';
 
 		if (is_int($str) or is_float($str))
 			return '\'' . $str . '\'';
@@ -367,7 +370,7 @@ class discuz_database_safecheck {
 	private static function _do_query_safe($sql) {
 		$sql = str_replace(array('\\\\', '\\\'', '\\"', '\'\''), '', $sql);
 		$mark = $clean = '';
-		if (strpos($sql, '/') === false && strpos($sql, '#') === false && strpos($sql, '-- ') === false && strpos($sql, '@') === false && strpos($sql, '`') === false) {
+		if (strpos($sql, '/') === false && strpos($sql, '#') === false && strpos($sql, '-- ') === false && strpos($sql, '@') === false && strpos($sql, '`') === false && strpos($sql, '"') === false) {
 			$clean = preg_replace("/'(.+?)'/s", '', $sql);
 		} else {
 			$len = strlen($sql);

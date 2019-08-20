@@ -199,11 +199,13 @@ if($operation == 'perm') {
 						$members[$member['uid']] = $member;
 					}
 				}
+				/*search={"menu_founder_perm":"action=founder"}*/
 				if(!$founderexists) {
 					showtips(cplang('home_security_nofounder').cplang('home_security_founder'));
 				} else {
 					showtips('home_security_founder');
 				}
+				/*search*/
 				showformheader('founder&operation=perm&do=member');
 				showtableheader();
 				showsubtitle(array('', 'founder_username', 'founder_usergname', ''));
@@ -420,7 +422,6 @@ function getactionarray() {
 	$isfounder = false;
 	require './source/admincp/admincp_menu.php';
 	require './source/admincp/admincp_perm.php';
-	require './source/admincp/menu/menu_cloud.php';
 	unset($menu['cloud'][0]);
 	unset($topmenu['index'], $menu['index']);
 	$actioncat = $actionarray = array();

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: spacecp_profile.php 34668 2014-06-23 08:11:09Z hypowang $
+ *      $Id: spacecp_profile.php 36284 2016-12-12 00:47:50Z nemohou $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -178,8 +178,6 @@ if(submitcheck('profilesubmit')) {
 	if($_GET['deletefile'] && is_array($_GET['deletefile'])) {
 		foreach($_GET['deletefile'] as $key => $value) {
 			if(isset($_G['cache']['profilesetting'][$key]) && $_G['cache']['profilesetting'][$key]['formtype'] == 'file') {
-				@unlink(getglobal('setting/attachdir').'./profile/'.$space[$key]);
-				@unlink(getglobal('setting/attachdir').'./profile/'.$verifyinfo['field'][$key]);
 				$verifyarr[$key] = $setarr[$key] = '';
 			}
 		}
@@ -215,17 +213,14 @@ if(submitcheck('profilesubmit')) {
 				$attach['attachment'] = dhtmlspecialchars(trim($attach['attachment']));
 				if($vid && $verifyconfig['available'] && isset($verifyconfig['field'][$key])) {
 					if(isset($verifyinfo['field'][$key])) {
-						@unlink(getglobal('setting/attachdir').'./profile/'.$verifyinfo['field'][$key]);
 						$verifyarr[$key] = $attach['attachment'];
 					}
 					continue;
 				}
 				if(isset($setarr[$key]) && $_G['cache']['profilesetting'][$key]['needverify']) {
-					@unlink(getglobal('setting/attachdir').'./profile/'.$verifyinfo['field'][$key]);
 					$verifyarr[$key] = $attach['attachment'];
 					continue;
 				}
-				@unlink(getglobal('setting/attachdir').'./profile/'.$space[$key]);
 				$setarr[$key] = $attach['attachment'];
 			}
 
@@ -505,7 +500,7 @@ if($operation == 'password') {
 
 include template("home/spacecp_profile");
 
-function profile_showerror($key, $extrainfo) {
+function profile_showerror($key, $extrainfo = '') {
 	echo '<script>';
 	echo 'parent.show_error("'.$key.'", "'.$extrainfo.'");';
 	echo '</script>';

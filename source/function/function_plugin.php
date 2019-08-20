@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_plugin.php 34534 2014-05-21 02:58:28Z nemohou $
+ *      $Id: function_plugin.php 36284 2016-12-12 00:47:50Z nemohou $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -184,8 +184,11 @@ function updatepluginlanguage($pluginarray) {
 	}
 	foreach(array('script', 'template', 'install', 'system') as $type) {
 		loadcache('pluginlanguage_'.$type, 1);
+		if(empty($_G['cache']['pluginlanguage_'.$type])) {             
+			$_G['cache']['pluginlanguage_'.$type] = array();             
+		}
 		if($type != 'system') {
-			if(!empty($pluginarray['language'][$type.'lang'])) {
+			if(!empty($pluginarray['language'][$type.'lang'])) {				
 				$_G['cache']['pluginlanguage_'.$type][$pluginarray['plugin']['identifier']] = $pluginarray['language'][$type.'lang'];
 			}
 		} else {
@@ -392,7 +395,7 @@ function updatetable_remakesql($value) {
 	return $value;
 }
 
-function cron_create($pluginid, $filename, $name, $weekday, $day, $hour, $minute) {
+function cron_create($pluginid, $filename = null, $name = null, $weekday = null, $day = null, $hour = null, $minute = null) {
 	if(!ispluginkey($pluginid)) {
 		return false;
 	}

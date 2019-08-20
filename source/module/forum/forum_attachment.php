@@ -165,9 +165,7 @@ if(empty($_GET['nothumb']) && $attach['isimage'] && $attach['thumb']) {
 }
 
 $filename = $_G['setting']['attachdir'].'/forum/'.$attach['attachment'];
-if(!$attach['remote'] && !is_readable($filename)) {
-	$storageService = Cloud::loadClass('Service_Storage');
-	$storageService->checkAttachment($attach);
+if(!$attach['remote'] && !is_readable($filename)) {	
 	if(!$requestmode) {
 		showmessage('attachment_nonexistence');
 	} else {
@@ -259,6 +257,9 @@ dheader('Content-Length: '.$filesize);
 $xsendfile = getglobal('config/download/xsendfile');
 if(!empty($xsendfile)) {
 	$type = intval($xsendfile['type']);
+	if($isimage){
+		$type = 0;
+	}
 	$cmd = '';
 	switch ($type) {
 		case 1: $cmd = 'X-Accel-Redirect'; $url = $xsendfile['dir'].$attach['attachment']; break;

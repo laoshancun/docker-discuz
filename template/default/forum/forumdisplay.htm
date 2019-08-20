@@ -68,7 +68,7 @@
 				<!--{if (!empty($_G[forum][domain]) && !empty($_G['setting']['domain']['root']['forum'])) || $moderatedby || ($_G['page'] == 1 && $_G['forum']['rules'])}-->
 					<div class="bm_c cl pbn">
 						<!--{if !empty($_G[forum][domain]) && !empty($_G['setting']['domain']['root']['forum'])}-->
-							<div class="pbn">{lang forum_domain}: <a href="http://{$_G[forum][domain]}.{$_G['setting']['domain']['root']['forum']}" id="group_link">http://{$_G[forum][domain]}.{$_G['setting']['domain']['root']['forum']}</a></div>
+							<div class="pbn">{lang forum_domain}: <a href="{$_G['scheme']}://{$_G[forum][domain]}.{$_G['setting']['domain']['root']['forum']}" id="group_link">{$_G['scheme']}://{$_G[forum][domain]}.{$_G['setting']['domain']['root']['forum']}</a></div>
 						<!--{/if}-->
 						<!--{if $moderatedby}--><div>{lang forum_modedby}: <span class="xi2">$moderatedby</span></div><!--{/if}-->
 						<!--{if $_G['page'] == 1 && $_G['forum']['rules']}-->
@@ -299,7 +299,7 @@
 									var postcontent = '';
 									postcontent += newpostlist[i].authorid ? '<dt><a href="home.php?mod=space&uid=' + newpostlist[i].authorid + '" target="_blank">' + newpostlist[i].avatar + '</a></dt>' : '<dt></dt>';
 									postcontent += newpostlist[i].authorid ? '<dd><a href="home.php?mod=space&uid=' + newpostlist[i].authorid + '" target="_blank">' + newpostlist[i].author + '</a></dd>' : '<dd>' + newpostlist[i].author + '</dd>';
-									postcontent += '<dd>' + newpostlist[i].message + '</dd>';
+									postcontent += '<dd>' + htmlspecialchars(newpostlist[i].message) + '</dd>';
 									postcontent += '<dd class="dateline">' + newpostlist[i].dateline + '</dd>';
 									if(replycontentlist[postid]) {
 										$('livereply_' + postid).innerHTML = postcontent;

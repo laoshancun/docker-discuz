@@ -177,9 +177,7 @@ if(submitcheck('forumsubmit', 1)) {
 		if($thread['isgroup'] && $thread['status'] == 3) {
 			$updateclosed[] = $thread['tid'];
 		} elseif($thread['threadexists']) {
-			$tids[] = $thread['tid'];
-			$log_handler = Cloud::loadClass('Cloud_Service_SearchHelper');
-			$log_handler->myThreadLog('delete', array('tid' => $thread['tid']));
+			$tids[] = $thread['tid'];			
 		}
 	}
 
@@ -464,7 +462,9 @@ if(submitcheck('forumsubmit', 1)) {
 
 	shownav('tools', 'nav_updatecounters');
 	showsubmenu('nav_updatecounters');
+	/*search={"nav_updatecounters":"action=counter"}*/
 	showtips('counter_tips');
+	/*search*/
 	showformheader('counter');
 	showtableheader();
 	showsubtitle(array('', 'counter_amount'));

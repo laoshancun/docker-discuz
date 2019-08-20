@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: db_driver_mysqli.php 33333 2013-05-28 09:10:48Z kamichen $
+ *      $Id: db_driver_mysqli.php 36278 2016-12-09 07:52:35Z nemohou $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -84,9 +84,11 @@ class db_driver_mysqli
 			$halt && $this->halt('notconnect', $this->errno());
 		} else {
 			$this->curlink = $link;
+			$link->options(MYSQLI_OPT_LOCAL_INFILE, false);
 			if($this->version() > '4.1') {
 				$link->set_charset($dbcharset ? $dbcharset : $this->config[1]['dbcharset']);
-				$serverset = $this->version() > '5.0.1' ? 'sql_mode=\'\'' : '';
+				$serverset = $this->version() > '5.0.1' ? 'sql_mode=\'\',' : '';
+				$serverset .= 'character_set_client=binary';
 				$serverset && $link->query("SET $serverset");
 			}
 		}
@@ -111,7 +113,6 @@ class db_driver_mysqli
 	}
 
 	function fetch_array($query, $result_type = MYSQLI_ASSOC) {
-		if($result_type == 'MYSQL_ASSOC') $result_type = MYSQLI_ASSOC;
 		return $query ? $query->fetch_array($result_type) : null;
 	}
 

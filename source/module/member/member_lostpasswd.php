@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: member_lostpasswd.php 31164 2012-07-20 07:50:57Z chenmengshu $
+ *      $Id: member_lostpasswd.php 35041 2014-10-29 08:05:36Z nemohou $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -62,6 +62,7 @@ if(submitcheck('lostpwsubmit')) {
 			'uid' => $member['uid'],
 			'idstring' => $idstring,
 			'clientip' => $_G['clientip'],
+			'sign' => make_getpws_sign($member['uid'], $idstring),
 		)
 	);
 	if(!sendmail("$_GET[username] <$tmp[email]>", $get_passwd_subject, $get_passwd_message)) {
